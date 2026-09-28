@@ -113,14 +113,17 @@ pipeline:
                     command: |-
                       echo "=== Step 7: Deleting Docker Hub Image ==="
                       echo ""
-                      TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username":"<+variable.docker_username>","password":"<+secrets.getValue(\"docker-hub-password\")>"}' https://hub.docker.com/v2/users/login/ | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+                      TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d "{\"username\":\"$DOCKER_USERNAME\",\"password\":\"$DOCKER_PASSWORD\"}" https://hub.docker.com/v2/users/login/ | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
                       echo "Logged in to Docker Hub API"
                       echo ""
-                      echo "Deleting entire repository: <+variable.docker_username>/python-harness-app"
-                      curl -s -X DELETE -H "Authorization: JWT $TOKEN" https://hub.docker.com/v2/repositories/<+variable.docker_username>/python-harness-app/
+                      echo "Deleting entire repository: $DOCKER_USERNAME/python-harness-app"
+                      curl -s -X DELETE -H "Authorization: JWT $TOKEN" https://hub.docker.com/v2/repositories/$DOCKER_USERNAME/python-harness-app/
                       echo ""
                       echo "=== Repository Deleted! ==="
                       echo "Next run will create it fresh again."
+                    envVariables:
+                      DOCKER_USERNAME: <+variable.docker_username>
+                      DOCKER_PASSWORD: <+secrets.getValue("docker-hub-password")>
 
               - step:
                   type: Run
@@ -133,21 +136,23 @@ pipeline:
                       echo ""
                       echo "Checking if repository still exists on Docker Hub..."
                       echo ""
-                      STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://hub.docker.com/v2/repositories/<+variable.docker_username>/python-harness-app/)
+                      STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://hub.docker.com/v2/repositories/$DOCKER_USERNAME/python-harness-app/)
                       if [ "$STATUS" = "404" ]; then
-                        echo "✅ Repository python-harness-app — DELETED (not found)"
+                        echo "Repository python-harness-app — DELETED (not found)"
                       else
-                        echo "⚠️ Repository may still exist (status: $STATUS)"
+                        echo "Repository may still exist (status: $STATUS)"
                       fi
                       echo ""
                       echo "========================================="
                       echo "  ALL DONE!"
-                      echo "  Step 1: Dependencies installed ✅"
-                      echo "  Step 2: Tests passed ✅"
-                      echo "  Step 3: App verified ✅"
-                      echo "  Step 4: Image pushed to Docker Hub ✅"
-                      echo "  Step 5: Push verified ✅"
-                      echo "  Step 6: Waited 1 minute ✅"
-                      echo "  Step 7: Image deleted from Docker Hub ✅"
-                      echo "  Step 8: Deletion verified ✅"
+                      echo "  Step 1: Dependencies installed"
+                      echo "  Step 2: Tests passed"
+                      echo "  Step 3: App verified"
+                      echo "  Step 4: Image pushed to Docker Hub"
+                      echo "  Step 5: Push verified"
+                      echo "  Step 6: Waited 1 minute"
+                      echo "  Step 7: Image deleted from Docker Hub"
+                      echo "  Step 8: Deletion verified"
                       echo "========================================="
+                    envVariables:
+                      DOCKER_USERNAME: <+variable.docker_username>
